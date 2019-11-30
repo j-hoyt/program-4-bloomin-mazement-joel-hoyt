@@ -6,6 +6,7 @@ import edu.princeton.cs.algs4.StdDraw;
 import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
+import java.lang.StringBuilder;
 
 public class Maze {
     static final int LEFT=0, RIGHT=1, UP=2, DOWN=3;
@@ -224,14 +225,20 @@ public class Maze {
     {
       if (kind == 1)
       {
+        StringBuilder nextLine;
         for (int i = 0; i < N; i++)
         {
+           nextLine = new StringBuilder();
           for (int j = 0; j < N; j++)
           {
             System.out.print("  " + ((walls[i][2 * j + 1]) ? "|" : " "));
-
+            if (walls[i][2 * j])
+              nextLine.append("---");
+            else
+              nextLine.append("   ");
           }
-          System.out.println("  x");
+          System.out.println("\n" + nextLine);
+
         }
       }
       System.out.println("printAsciiGraphics: write me");
