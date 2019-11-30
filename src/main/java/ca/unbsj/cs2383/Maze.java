@@ -328,16 +328,23 @@ public class Maze {
             nextLine.append("  ");
 
           //print bottom right char, either + | - or blank
-          if (!isRightWall(i,j) && !isBottomWall(i,j))
-            nextLine.append(" ");
-          else if (isRightWall(i,j) && !isBottomWall(i+1,j)) //double check incrementing i or j
-            nextLine.append("|");
-          else if (isBottomWall(i,j) && !isRightWall(i, j+1))
-            nextLine.append("-");
+          if (j != N -1)
+          {
+            if (!isRightWall(i,j) && !isBottomWall(i,j))
+              nextLine.append(" ");
+            else if (isRightWall(i,j) && !isBottomWall(i+1,j)) //double check incrementing i or j
+              nextLine.append("|");
+            else if (isBottomWall(i,j) && !isRightWall(i, j+1))
+              nextLine.append("-");
+            else
+              nextLine.append("+");
+          }
           else
-            nextLine.append("+");
+          {
+            nextLine.append("|");
+          }
         }
-        System.out.println(nextLine);
+        System.out.println("\n" + nextLine);
       }
 
       System.out.println("printAsciiGraphics: write me");
