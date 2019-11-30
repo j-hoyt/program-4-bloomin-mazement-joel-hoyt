@@ -307,42 +307,58 @@ public class Maze {
     void printAsciiGraphics(int kind)
     {
       StringBuilder nextLine;
-      for (int i = 0; i < N; i++)
+      for (int y = 0; y < N; y++)
       {
         nextLine = new StringBuilder();
-        for (int j = 0; j < N; j++)
+        for (int x = 0; x < N; x++)
         {
           //blank space for cell
           System.out.print("  ");
 
           // print top right char, | or space
-          if (isRightWall(j,i))
+          if (isRightWall(x,y))
             System.out.print("|");
           else
             System.out.print(" ");
 
           //print two bottom left chars, blank or --
-          if (isBottomWall(j,i))
+          if (isBottomWall(x,y))
             nextLine.append("--");
           else
             nextLine.append("  ");
 
           //print bottom right char, either + | - or blank
-          if (j != N -1)
+          if (isRightWall(x,y) && isBottomWall(x,y))
+            nextLine.append("+");
+
+          if (isRightWall(x,y) && !isBottomWall(x,y))
           {
-            if (!isRightWall(j,i) && !isBottomWall(j,i))
-              nextLine.append(" ");
-            else if (isRightWall(j,i) && !isBottomWall(j,i+1)) //double check incrementing i or j
-              nextLine.append("|");
-            else if (isBottomWall(j,i) && !isRightWall(j+1,i))
-              nextLine.append("-");
+            if (x != N - 1)
+            {
+              if (isBottomWall(x + 1, y))
+                nextLine.append("+");
+              else
+                nextLine.append("|");
+            }
             else
-              nextLine.append("+");
+              nextLine.append("|");
           }
-          else
+
+          if (!isRightWall(x,y)  && isBottomWall(x,y))
           {
-            nextLine.append("|");
+            if (y != N - 1)
+            {
+              if (isRightWall(x, y + 1))
+                nextLine.append("+");
+              else
+                nextLine.append("-");
+            }
+            else
+              nextLine.append("-");
           }
+
+          if (!isRightWall(x,y) && !isBottomWall(x,y))
+            nextLine.append(" ");
         }
         System.out.println("\n" + nextLine);
       }
