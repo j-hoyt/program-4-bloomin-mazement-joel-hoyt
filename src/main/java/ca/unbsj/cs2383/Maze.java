@@ -24,6 +24,7 @@ public class Maze {
     Random r;
     UF uf;  // union find structures
     Set<String> removedWalls;
+    int wallCount;  // count of how many walls are removed
 
     // 2d array of walls, N x 2N
     // bottom wall of cell[i][j] corresponds to walls[i][2j]
@@ -38,10 +39,11 @@ public class Maze {
         if (setKindCode < 0 || setKindCode > bloomFilterSet)
             throw new RuntimeException("illegal setKind Code on cmd line");
 
-        Maze m = new Maze(setKindCode,true); // will draw on grahics
+        Maze m = new Maze(setKindCode, false); // will draw on grahics
 
         m.generate();
-        m.printAsciiGraphics();
+        m.printAsciiGraphics(setKindCode);
+        System.out.println(m.wallCount);
      }
 
     // a bunch of methods to map between cell ids (0,1,...N^2-1) and x,y coords
@@ -61,13 +63,22 @@ public class Maze {
     public Maze(int setKindCode, boolean graphicsDraw) {
         uf = new UF(N*N);
         walls = new boolean[N][2*N];
-        for (boolean[] a : walls)
+        wallCount = 0;
+
+        // setting all walls to true (ie, they exist) to start
+        /*for (boolean[] a : walls)
           for (boolean b : a)
-            b = true;
+            b = true;*/
+        for (int i = 0; i < N; i++)
+        {
+          for (int j = 0; j < 2 * N; j++)
+          {
+            walls[i][j] = true;
+          }
+        }
 
         // our maze requires us to get from top left
         // to bottom right.
-
 
         topLeft = xyToId(0,0);
         bottomRight = xyToId(N-1,N-1);
@@ -111,26 +122,26 @@ public class Maze {
             switch(randDir) {
             case LEFT:
                 if (randX != 0)
-                    connectIfNotConnected(randId, idOfCellLeft(randId));
+                  connectIfNotConnected(randId, idOfCellLeft(randId), LEFT);
                 break;
             case RIGHT:
                 if (randX != N-1)
-                    connectIfNotConnected(randId, idOfCellRight(randId));
+                    connectIfNotConnected(randId, idOfCellRight(randId), RIGHT);
                 break;
             case UP:
                 if (randY != 0)
-                    connectIfNotConnected(randId, idOfCellAbove(randId));
+                    connectIfNotConnected(randId, idOfCellAbove(randId), UP);
                 break;
             case DOWN:
                 if (randY != N-1)
-                    connectIfNotConnected(randId, idOfCellBelow(randId));
+                    connectIfNotConnected(randId, idOfCellBelow(randId), DOWN);
                 break;
             }
         }
     }
 
 
-    void connectIfNotConnected(int id1, int id2) {
+    void connectIfNotConnected(int id1, int id2, int direction) {
         if ( ! uf.connected(id1, id2))
         {
             // knock out the wall and thereby merge components
@@ -139,14 +150,33 @@ public class Maze {
             int x1 = idToX(id1); int y1 = idToY(id1);
             int x2 = idToX(id2); int y2 = idToY(id2);
 
+            if (direction == LEFT) {
+              // go to the left cell and knock down the right wall
+              walls[y2][(2 * x2) + 1] = false;
+            }
 
+            else if (direction == RIGHT) {
+              // knock down the right wall
+              walls[y1][(2 * x1) + 1] = false;
+            }
+
+            else if (direction == UP) {
+              // go up and knock down the bottom wall
+              walls[y2][2 * x2] = false;
+            }
+
+            else if (direction == DOWN) {
+              // knock down the bottom wall
+              walls[y1][2 * x1] = false;
+            }
+
+            wallCount++;
 
 
             if (drawOnGraphicsScreen)
             {
               // erase the wall
               StdDraw.setPenColor(StdDraw.WHITE);
-
               if (x1 == x2)
               {
                   // vertical adjacency needs a horizontal line seg
@@ -175,22 +205,36 @@ public class Maze {
     // with blanks, * for non-members
     // Note: this is not a visualization of the maze
 
-    void print(int howMuch) {
-        if (howMuch > N) howMuch = N;
-        for (int y=0; y < howMuch; ++y) {
-            for (int x=0; x < howMuch; ++x)
-                if (uf.connected(xyToId(x,y), topLeft))
-                    System.out.print(" ");
-                else
-                    System.out.print("*");
-            System.out.println();
-        }
+    void print(int howMuch)
+    {
+      if (howMuch > N) howMuch = N;
+      for (int y=0; y < howMuch; ++y)
+      {
+          for (int x=0; x < howMuch; ++x)
+              if (uf.connected(xyToId(x,y), topLeft))
+                  System.out.print(" ");
+              else
+                  System.out.print("*");
+          System.out.println();
+      }
     }
 
 
-    void printAsciiGraphics()
+    void printAsciiGraphics(int kind)
     {
-        System.out.println("printAsciiGraphics: write me");
+      if (kind == 1)
+      {
+        for (int i = 0; i < N; i++)
+        {
+          for (int j = 0; j < N; j++)
+          {
+            System.out.print("  " + ((walls[i][2 * j + 1]) ? "|" : " "));
+
+          }
+          System.out.println("  x");
+        }
+      }
+      System.out.println("printAsciiGraphics: write me");
     }
 
 }
