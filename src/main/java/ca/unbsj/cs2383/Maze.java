@@ -316,13 +316,13 @@ public class Maze {
           System.out.print("  ");
 
           // print top right char, | or space
-          if (isRightWall(i, j))
+          if (isRightWall(j,i))
             System.out.print("|");
           else
             System.out.print(" ");
 
           //print two bottom left chars, blank or --
-          if (isBottomWall(i,j))
+          if (isBottomWall(j,i))
             nextLine.append("--");
           else
             nextLine.append("  ");
@@ -330,11 +330,11 @@ public class Maze {
           //print bottom right char, either + | - or blank
           if (j != N -1)
           {
-            if (!isRightWall(i,j) && !isBottomWall(i,j))
+            if (!isRightWall(j,i) && !isBottomWall(j,i))
               nextLine.append(" ");
-            else if (isRightWall(i,j) && !isBottomWall(i+1,j)) //double check incrementing i or j
+            else if (isRightWall(j,i) && !isBottomWall(j,i+1)) //double check incrementing i or j
               nextLine.append("|");
-            else if (isBottomWall(i,j) && !isRightWall(i, j+1))
+            else if (isBottomWall(j,i) && !isRightWall(j+1,i))
               nextLine.append("-");
             else
               nextLine.append("+");
