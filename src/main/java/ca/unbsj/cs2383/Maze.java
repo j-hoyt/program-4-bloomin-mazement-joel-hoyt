@@ -32,6 +32,8 @@ public class Maze {
     // right wall  of cell[i][j] corresponds to walls[i][2j+1]
     boolean[][] walls;
 
+    int k;
+
 
     boolean drawOnGraphicsScreen;
 
@@ -40,7 +42,7 @@ public class Maze {
         if (setKindCode < 0 || setKindCode > bloomFilterSet)
             throw new RuntimeException("illegal setKind Code on cmd line");
 
-        Maze m = new Maze(setKindCode, false); // will draw on grahics
+        Maze m = new Maze(setKindCode, true); // will draw on grahics
 
         m.generate();
         m.printAsciiGraphics(setKindCode);
@@ -62,6 +64,7 @@ public class Maze {
 
 
     public Maze(int setKindCode, boolean graphicsDraw) {
+        k = setKindCode;
         uf = new UF(N*N);
         walls = new boolean[N][2*N];
         wallCount = 0;
@@ -153,22 +156,22 @@ public class Maze {
 
             if (direction == LEFT) {
               // go to the left cell and knock down the right wall
-              walls[y2][(2 * x2) + 1] = false;
+              removeRightWall(x2, y2);
             }
 
             else if (direction == RIGHT) {
               // knock down the right wall
-              walls[y1][(2 * x1) + 1] = false;
+              removeRightWall(x1, y1);
             }
 
             else if (direction == UP) {
               // go up and knock down the bottom wall
-              walls[y2][2 * x2] = false;
+              removeBottomWall(x2,y2);
             }
 
             else if (direction == DOWN) {
               // knock down the bottom wall
-              walls[y1][2 * x1] = false;
+              removeBottomWall(x1, y1);
             }
 
             wallCount++;
@@ -201,6 +204,86 @@ public class Maze {
         }
     }
 
+    void removeRightWall(int x, int y)
+    {
+      switch (k)
+      {
+        case 1:
+          walls[y][(2 * x) + 1] = false;
+          break;
+
+        case 2:
+          break;
+
+        case 3:
+          break;
+
+        case 4:
+          break;
+      }
+    }
+
+    void removeBottomWall(int x, int y)
+    {
+      switch (k)
+      {
+        case 1:
+          walls[y][(2 * x)] = false;
+          break;
+
+        case 2:
+          break;
+
+        case 3:
+          break;
+
+        case 4:
+          break;
+      }
+    }
+
+    boolean isRightWall(int x, int y)
+    {
+      boolean isWall = true; // remove this later
+      switch (k)
+      {
+        case 1:
+          isWall = walls[y][(2 * x) + 1];
+          break;
+
+        case 2:
+          break;
+
+        case 3:
+          break;
+
+        case 4:
+          break;
+      }
+      return isWall;
+    }
+
+    boolean isBottomWall(int x, int y)
+    {
+      boolean isWall = true; // remove this later
+      switch (k)
+      {
+        case 1:
+          isWall = walls[y][(2 * x)];
+          break;
+
+        case 2:
+          break;
+
+        case 3:
+          break;
+
+        case 4:
+          break;
+      }
+      return isWall;
+    }
+
     // for debugging,
     // show members of the connected component of (0,0)
     // with blanks, * for non-members
@@ -223,24 +306,40 @@ public class Maze {
 
     void printAsciiGraphics(int kind)
     {
-      if (kind == 1)
+      StringBuilder nextLine;
+      for (int i = 0; i < N; i++)
       {
-        StringBuilder nextLine;
-        for (int i = 0; i < N; i++)
+        nextLine = new StringBuilder();
+        for (int j = 0; j < N; j++)
         {
-           nextLine = new StringBuilder();
-          for (int j = 0; j < N; j++)
-          {
-            System.out.print("  " + ((walls[i][2 * j + 1]) ? "|" : " "));
-            if (walls[i][2 * j])
-              nextLine.append("---");
-            else
-              nextLine.append("   ");
-          }
-          System.out.println("\n" + nextLine);
+          //blank space for cell
+          System.out.print("  ");
 
+          // print top right char, | or space
+          if (isRightWall(i, j))
+            System.out.print("|");
+          else
+            System.out.print(" ");
+
+          //print two bottom left chars, blank or --
+          if (isBottomWall(i,j))
+            nextLine.append("--");
+          else
+            nextLine.append("  ");
+
+          //print bottom right char, either + | - or blank
+          if (!isRightWall(i,j) && !isBottomWall(i,j))
+            nextLine.append(" ");
+          else if (isRightWall(i,j) && !isBottomWall(i+1,j)) //double check incrementing i or j
+            nextLine.append("|");
+          else if (isBottomWall(i,j) && !isRightWall(i, j+1))
+            nextLine.append("-");
+          else
+            nextLine.append("+");
         }
+        System.out.println(nextLine);
       }
+
       System.out.println("printAsciiGraphics: write me");
     }
 
