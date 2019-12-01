@@ -7,6 +7,7 @@ import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.lang.StringBuilder;
 
 public class Maze {
@@ -27,7 +28,7 @@ public class Maze {
     Set<String> removedWalls;
     int wallCount;  // count of how many walls are removed
     BitSet bitsy;
-    Set<String> hashy =  new HashSet<String>();
+    Set<String> hashy;
 
     // 2d array of walls, N x 2N
     // bottom wall of cell[i][j] corresponds to walls[i][2j]
@@ -73,6 +74,7 @@ public class Maze {
         wallCount = 0;
         bitsy = new BitSet(2 * N * N);
         bitsy.set(0, 2 * N * N - 1, true);
+        hashy =  new HashSet<String>(2 * N * N);
 
         // setting all walls to true (ie, they exist) to start
         /*for (boolean[] a : walls)
@@ -222,6 +224,7 @@ public class Maze {
           break;
 
         case 3:
+          hashy.add(x + ";" + y);
           break;
 
         case 4:
@@ -242,9 +245,12 @@ public class Maze {
           break;
 
         case 3:
+          y += N;
+          hashy.add(x + ";" + y);
           break;
 
         case 4:
+
           break;
       }
     }
@@ -263,6 +269,7 @@ public class Maze {
           break;
 
         case 3:
+          isWall = hashy.contains(x + ";" + y);
           break;
 
         case 4:
@@ -285,6 +292,8 @@ public class Maze {
           break;
 
         case 3:
+          y += N;
+          isWall = hashy.contains(x + ";" + y);
           break;
 
         case 4:
