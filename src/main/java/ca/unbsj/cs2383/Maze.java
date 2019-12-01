@@ -6,6 +6,7 @@ import edu.princeton.cs.algs4.StdDraw;
 import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.BitSet;
 import java.lang.StringBuilder;
 
 public class Maze {
@@ -17,7 +18,6 @@ public class Maze {
     static final int hashSetSet=3;
     static final int bloomFilterSet=4;
 
-
     static final int N = 40; // grid is NxN
     static final double GRAPHICSSCALE = 1.0/N;
 
@@ -26,6 +26,7 @@ public class Maze {
     UF uf;  // union find structures
     Set<String> removedWalls;
     int wallCount;  // count of how many walls are removed
+    BitSet bitsy;
 
     // 2d array of walls, N x 2N
     // bottom wall of cell[i][j] corresponds to walls[i][2j]
@@ -37,7 +38,8 @@ public class Maze {
 
     boolean drawOnGraphicsScreen;
 
-    public static void main(String [] args) {
+    public static void main(String [] args)
+    {
         int setKindCode = Integer.parseInt(args[0]);
         if (setKindCode < 0 || setKindCode > bloomFilterSet)
             throw new RuntimeException("illegal setKind Code on cmd line");
@@ -68,6 +70,8 @@ public class Maze {
         uf = new UF(N*N);
         walls = new boolean[N][2*N];
         wallCount = 0;
+        bitsy = new BitSet(2 * N * N);
+        bitsy.set(0, 2 * N * N - 1, true);
 
         // setting all walls to true (ie, they exist) to start
         /*for (boolean[] a : walls)
@@ -289,6 +293,8 @@ public class Maze {
     // with blanks, * for non-members
     // Note: this is not a visualization of the maze
 
+
+
     void print(int howMuch)
     {
       if (howMuch > N) howMuch = N;
@@ -304,12 +310,21 @@ public class Maze {
     }
 
 
+
     void printAsciiGraphics(int kind)
     {
+      System.out.print("+");
+      for (int i = 0; i < (N * 3) - 1; i++)
+        System.out.print("-");
+      System.out.println("+");
+
+
+
       StringBuilder nextLine;
       for (int y = 0; y < N; y++)
       {
-        nextLine = new StringBuilder();
+        nextLine = new StringBuilder("|");
+        System.out.print("|");
         for (int x = 0; x < N; x++)
         {
           //blank space for cell
@@ -362,8 +377,5 @@ public class Maze {
         }
         System.out.println("\n" + nextLine);
       }
-
-      System.out.println("printAsciiGraphics: write me");
     }
-
 }
