@@ -27,6 +27,7 @@ public class Maze {
     Set<String> removedWalls;
     int wallCount;  // count of how many walls are removed
     BitSet bitsy;
+    Set<String> hashy =  new HashSet<String>();
 
     // 2d array of walls, N x 2N
     // bottom wall of cell[i][j] corresponds to walls[i][2j]
@@ -217,6 +218,7 @@ public class Maze {
           break;
 
         case 2:
+          bitsy.set(y * N + x, false);
           break;
 
         case 3:
@@ -236,6 +238,7 @@ public class Maze {
           break;
 
         case 2:
+          bitsy.set((y * N + x) + (N * N), false);
           break;
 
         case 3:
@@ -256,6 +259,7 @@ public class Maze {
           break;
 
         case 2:
+          isWall = bitsy.get(y * N + x);
           break;
 
         case 3:
@@ -277,6 +281,7 @@ public class Maze {
           break;
 
         case 2:
+          isWall = bitsy.get((y * N + x) + (N * N));
           break;
 
         case 3:
