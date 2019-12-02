@@ -76,27 +76,6 @@ public class Maze {
     uf = new UF(N*N);
     wallCount = 0;
 
-    walls = new boolean[N][2*N];
-    for (int i = 0; i < N; i++)
-    {
-      for (int j = 0; j < 2 * N; j++)
-      {
-        walls[i][j] = true;
-      }
-    }
-
-
-    bitsy = new BitSet(2 * N * N);
-    bitsy.set(0, 2 * N * N - 1, true);
-
-    hashy =  new HashSet<String>(2 * N * N);
-
-    // setting all walls to true (ie, they exist) to start
-    /*for (boolean[] a : walls)
-      for (boolean b : a)
-        b = true;*/
-
-
     // our maze requires us to get from top left
     // to bottom right.
 
@@ -126,39 +105,70 @@ public class Maze {
     }
   }
 
-  void generate() {
-      while (!uf.connected(topLeft, bottomRight)) {
-          // choose a random cell
-          int randX = r.nextInt(N);
-          int randY = r.nextInt(N);
-          int randId = xyToId(randX,randY);
-
-          // choose one of its 4 neighbours
-          int randDir = r.nextInt(4);
-
-          // knock down a wall, if present, between cell and
-          // its chosen neighbour if they are not yet in the
-          // same component
-
-          switch(randDir) {
-          case LEFT:
-              if (randX != 0)
-                connectIfNotConnected(randId, idOfCellLeft(randId), LEFT);
-              break;
-          case RIGHT:
-              if (randX != N-1)
-                  connectIfNotConnected(randId, idOfCellRight(randId), RIGHT);
-              break;
-          case UP:
-              if (randY != 0)
-                  connectIfNotConnected(randId, idOfCellAbove(randId), UP);
-              break;
-          case DOWN:
-              if (randY != N-1)
-                  connectIfNotConnected(randId, idOfCellBelow(randId), DOWN);
-              break;
+  void generate()
+  {
+    switch (k)
+    {
+      case twoDBooleanSet:
+        // all walls initialized to true. Set to false when removed.
+        walls = new boolean[N][2*N];
+        for (int i = 0; i < N; i++)
+        {
+          for (int j = 0; j < 2 * N; j++)
+          {
+            walls[i][j] = true;
           }
+        }
+        break;
+
+      case bitSetSet:
+        bitsy = new BitSet(2 * N * N);
+        bitsy.set(0, 2 * N * N - 1, true);
+        break;
+
+      case hashSetSet:
+        hashy =  new HashSet<String>(2 * N * N);
+        break;
+
+      case bloomFilterSet:
+        filterSize = (int) Math.ceil(-4 * N * N / Math.log(0.9));
+        
+        break;
+    }
+
+    while (!uf.connected(topLeft, bottomRight))
+    {
+      // choose a random cell
+      int randX = r.nextInt(N);
+      int randY = r.nextInt(N);
+      int randId = xyToId(randX,randY);
+
+      // choose one of its 4 neighbours
+      int randDir = r.nextInt(4);
+
+      // knock down a wall, if present, between cell and
+      // its chosen neighbour if they are not yet in the
+      // same component
+
+      switch(randDir) {
+      case LEFT:
+          if (randX != 0)
+            connectIfNotConnected(randId, idOfCellLeft(randId), LEFT);
+          break;
+      case RIGHT:
+          if (randX != N-1)
+              connectIfNotConnected(randId, idOfCellRight(randId), RIGHT);
+          break;
+      case UP:
+          if (randY != 0)
+              connectIfNotConnected(randId, idOfCellAbove(randId), UP);
+          break;
+      case DOWN:
+          if (randY != N-1)
+              connectIfNotConnected(randId, idOfCellBelow(randId), DOWN);
+          break;
       }
+    }
   }
 
 
