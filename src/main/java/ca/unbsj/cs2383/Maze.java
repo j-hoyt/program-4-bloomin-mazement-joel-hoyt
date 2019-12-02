@@ -32,7 +32,9 @@ public class Maze {
   BitSet bitsy;       // Case 2: BitSet
   Set<String> hashy;  // Case 3: HashSet
 
-  int filterSize;     // Case 4: Bloom Filter
+  int filterSize;           // Case 4: Bloom Filter
+  BitSet bitsyBloomRight;   // BitSets for Bloom filter
+  BitSet bitsyBloomBottom;
 
 
   // 2d array of walls, N x 2N
@@ -86,22 +88,22 @@ public class Maze {
     drawOnGraphicsScreen = graphicsDraw;
     if (graphicsDraw)
     {
-        StdDraw.setCanvasSize(N*CELLSIZE,N*CELLSIZE);
-        StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.setPenRadius(0.004);
-        StdDraw.clear();
+      StdDraw.setCanvasSize(N*CELLSIZE,N*CELLSIZE);
+      StdDraw.setPenColor(StdDraw.BLACK);
+      StdDraw.setPenRadius(0.004);
+      StdDraw.clear();
 
-        // initial grid
-        // StdDraw puts the origin at the BOTTOM left, so
-        // things are basically "upside down" when visualized
-        // with it.....unless we do these crazy (1-y) transform to
-        // fix this.
+      // initial grid
+      // StdDraw puts the origin at the BOTTOM left, so
+      // things are basically "upside down" when visualized
+      // with it.....unless we do these crazy (1-y) transform to
+      // fix this.
 
-        for (int i=0; i <= N; ++i) {
-            StdDraw.line(0, 1- i/(double)N, 1, 1-i/(double) N);
-            StdDraw.line(i/(double)N, 0, i/(double)N,  1);
-        }
-        StdDraw.setPenRadius(0.006); // don't want shadow of former line
+      for (int i=0; i <= N; ++i) {
+          StdDraw.line(0, 1- i/(double)N, 1, 1-i/(double) N);
+          StdDraw.line(i/(double)N, 0, i/(double)N,  1);
+      }
+      StdDraw.setPenRadius(0.006); // don't want shadow of former line
     }
   }
 
@@ -131,8 +133,14 @@ public class Maze {
         break;
 
       case bloomFilterSet:
-        filterSize = (int) Math.ceil(-4 * N * N / Math.log(0.9));
-        
+        // size of bitset for 1% false positive rate with N^2 insertions
+        filterSize = (int) Math.ceil(-2 * N * N / Math.log(0.9));
+        bitsyBloomRight =  new BitSet(filterSize);
+        bitsyBloomBottom =  new BitSet(filterSize);
+
+        //set all values in BitSet to true, ie, all walls are there at the start
+        bitsyBloomRight.set(0,filterSize - 1, true);
+        bitsyBloomBottom.set(0,filterSize - 1, true);
         break;
     }
 
@@ -248,6 +256,9 @@ public class Maze {
         break;
 
       case bloomFilterSet:
+        String wall = x + ";" + y;
+        bitsyBloomRight.set(wall.hashCode()%filterSize, false);
+        bitsyBloomRight.set(hashinItUp(wall), false);
         break;
     }
   }
@@ -271,7 +282,9 @@ public class Maze {
         break;
 
       case bloomFilterSet:
-
+        String wall = x + ";" + y;
+        bitsyBloomBottom.set(wall.hashCode()%filterSize, false);
+        bitsyBloomBottom.set(hashinItUp(wall), false);
         break;
     }
   }
@@ -294,6 +307,12 @@ public class Maze {
         break;
 
       case bloomFilterSet:
+        String wall = x + ";" + y;
+        if (!bitsyBloomRight.get(wall.hashCode()%filterSize) && bitsyBloomRight.get(hashinItUp(wall)))
+          isWall = false;
+        else
+          isWall = true;
+
         break;
     }
     return isWall;
@@ -319,6 +338,12 @@ public class Maze {
         break;
 
       case bloomFilterSet:
+        String wall = x + ";" + y;
+        if (!bitsyBloomBottom.get(wall.hashCode()%filterSize) && bitsyBloomBottom.get(hashinItUp(wall)))
+          isWall = false;
+        else
+          isWall = true;
+
         break;
     }
     return isWall;
@@ -414,4 +439,15 @@ public class Maze {
       System.out.println("\n" + nextLine);
     }
   }
+
+  // hash function for strings
+  int hashinItUp(String s)
+  {
+    int hash = 0;
+    for (int i = 0; i < s.length(); i++)
+      hash = (29 * hash + s.charAt(i)) % filterSize;
+
+    return hash;
+  }
+
 }
