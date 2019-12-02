@@ -246,6 +246,7 @@ public class Maze {
 
         case 3:
           y += N;
+          x += N;
           hashy.add(x + ";" + y);
           break;
 
@@ -269,7 +270,7 @@ public class Maze {
           break;
 
         case 3:
-          isWall = hashy.contains(x + ";" + y);
+          isWall = !hashy.contains(x + ";" + y);
           break;
 
         case 4:
@@ -293,7 +294,8 @@ public class Maze {
 
         case 3:
           y += N;
-          isWall = hashy.contains(x + ";" + y);
+          x += N;
+          isWall = !hashy.contains(x + ";" + y);
           break;
 
         case 4:
@@ -337,7 +339,7 @@ public class Maze {
       StringBuilder nextLine;
       for (int y = 0; y < N; y++)
       {
-        nextLine = new StringBuilder("|");
+        nextLine = new StringBuilder((isBottomWall(0,y) ? "+" : "|"));
         System.out.print("|");
         for (int x = 0; x < N; x++)
         {
