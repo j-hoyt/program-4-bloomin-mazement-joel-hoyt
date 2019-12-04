@@ -5,6 +5,8 @@ import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.Graph;
 import edu.princeton.cs.algs4.BreadthFirstPaths;
 import edu.princeton.cs.algs4.Stack;
+import edu.princeton.cs.algs4.Bag;
+
 
 import java.util.Iterator;
 import java.util.ArrayList;
@@ -24,7 +26,7 @@ public class Maze {
   static final int hashSetSet=3;
   static final int bloomFilterSet=4;
 
-  static final int N = 25; // grid is NxN
+  static final int N = 40; // grid is NxN
   static final double GRAPHICSSCALE = 1.0/N;
 
   int topLeft, bottomRight; // node IDs
@@ -196,30 +198,26 @@ public class Maze {
       }
     }
 
+    BreadthFirstPaths bfp = new BreadthFirstPaths(g, topLeft);
+    //System.out.println("\u2022has path?: " + (bfp.hasPathTo(bottomRight) ? "true" : "false" ));
 
-    if (k == 4)
+    solvedPath = new ArrayList<Integer>();
+
+    Stack<Integer> s = (Stack) bfp.pathTo(bottomRight);
+
+    while (!s.isEmpty())
     {
-      BreadthFirstPaths bfp = new BreadthFirstPaths(g, topLeft);
-      System.out.println("has path?: " + (bfp.hasPathTo(bottomRight) ? "true" : "false" ));
-      Object crap = bfp.pathTo(bottomRight);
-      solvedPath = new ArrayList<Integer>();
-
-      ListIterator<Integer> iter = new Iterator();
-      iter = bfp.pathTo(bottomRight).Iterator();
-      // int[] solvedPath2 = new int[g.V()];
-
-
-
-      /*solvedPath = new ArrayList<Integer>();
-      for (int vertex : s)
-      {
-        solvedPath.add(s.pop());
-      }
-      */
+      solvedPath.add(s.pop());
     }
 
-  }
-
+    for (int i : solvedPath)
+    {
+      int xpath = idToX(i);
+      int ypath = idToY(i);
+      StdDraw.setPenColor(StdDraw.BLUE);
+      StdDraw.filledCircle((xpath + 0.5) / N, 1 - ((ypath + 0.5) / N), 0.007);
+    }
+}
 
   void connectIfNotConnected(int id1, int id2, int direction) {
       if ( ! uf.connected(id1, id2))
@@ -301,7 +299,7 @@ public class Maze {
 
       case bloomFilterSet:
         String wall = x + ";" + y;
-        bitsyBloomRight.set(wall.hashCode()%filterSize, false);
+        bitsyBloomRight.set(wall.hashCode() % filterSize, false);
         bitsyBloomRight.set(hashinItUp(wall), false);
         break;
     }
@@ -327,7 +325,7 @@ public class Maze {
 
       case bloomFilterSet:
         String wall = x + ";" + y;
-        bitsyBloomBottom.set(wall.hashCode()%filterSize, false);
+        bitsyBloomBottom.set(wall.hashCode() % filterSize, false);
         bitsyBloomBottom.set(hashinItUp(wall), false);
         break;
     }
@@ -352,7 +350,7 @@ public class Maze {
 
       case bloomFilterSet:
         String wall = x + ";" + y;
-        if (!bitsyBloomRight.get(wall.hashCode()%filterSize) && !bitsyBloomRight.get(hashinItUp(wall)))
+        if (!bitsyBloomRight.get(wall.hashCode() % filterSize) && !bitsyBloomRight.get(hashinItUp(wall)))
           isWall = false;
         else
           isWall = true;
@@ -383,7 +381,7 @@ public class Maze {
 
       case bloomFilterSet:
         String wall = x + ";" + y;
-        if (!bitsyBloomBottom.get(wall.hashCode()%filterSize) && !bitsyBloomBottom.get(hashinItUp(wall)))
+        if (!bitsyBloomBottom.get(wall.hashCode() % filterSize) && !bitsyBloomBottom.get(hashinItUp(wall)))
           isWall = false;
         else
           isWall = true;
@@ -433,19 +431,28 @@ public class Maze {
       for (int x = 0; x < N; x++)
       {
         //blank space for cell
-        System.out.print("  ");
+        if (solvedPath.contains(xyToId(x, y)))
+          System.out.print("\u2022\u2022");
+        else
+          System.out.print("  ");
 
         // print top right char, | or space
         if (isRightWall(x,y))
           System.out.print("|");
         else
-          System.out.print(" ");
+          if (solvedPath.contains(xyToId(x, y)))
+            System.out.print("\u2022");
+          else
+            System.out.print(" ");
 
         //print two bottom left chars, blank or --
         if (isBottomWall(x,y))
           nextLine.append("--");
         else
-          nextLine.append("  ");
+          if (solvedPath.contains(xyToId(x, y)))
+            nextLine.append("\u2022\u2022");
+          else
+            nextLine.append("  ");
 
         //print bottom right char, either + | - or blank
         if (isRightWall(x,y) && isBottomWall(x,y))
@@ -478,7 +485,12 @@ public class Maze {
         }
 
         if (!isRightWall(x,y) && !isBottomWall(x,y))
+        {
+        if (solvedPath.contains(xyToId(x, y)))
+          nextLine.append("\u2022");
+        else
           nextLine.append(" ");
+        }
       }
       System.out.println("\n" + nextLine);
     }
