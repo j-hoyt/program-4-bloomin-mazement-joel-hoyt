@@ -2,7 +2,12 @@ package ca.unbsj.cs2383;
 
 import edu.princeton.cs.algs4.UF;
 import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.Graph;
+import edu.princeton.cs.algs4.BreadthFirstPaths;
+import edu.princeton.cs.algs4.Stack;
 
+import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +24,7 @@ public class Maze {
   static final int hashSetSet=3;
   static final int bloomFilterSet=4;
 
-  static final int N = 40; // grid is NxN
+  static final int N = 25; // grid is NxN
   static final double GRAPHICSSCALE = 1.0/N;
 
   int topLeft, bottomRight; // node IDs
@@ -35,6 +40,12 @@ public class Maze {
   int filterSize;           // Case 4: Bloom Filter
   BitSet bitsyBloomRight;   // BitSets for Bloom filter
   BitSet bitsyBloomBottom;
+
+  // For Solving and Drawing:
+  Graph g;
+  BreadthFirstPaths bfp;
+  ArrayList<Integer> solvedPath; // ArrayList of cell IDs that are on the correct path
+
 
 
   // 2d array of walls, N x 2N
@@ -55,9 +66,12 @@ public class Maze {
 
       Maze m = new Maze(setKindCode, true); // will draw on grahics
 
+
       m.generate();
       m.printAsciiGraphics(setKindCode);
-      System.out.println(m.wallCount);
+      System.out.println(m.wallCount + "\n\n");
+
+
    }
 
   // a bunch of methods to map between cell ids (0,1,...N^2-1) and x,y coords
@@ -68,8 +82,8 @@ public class Maze {
 
   int idOfCellAbove(int id) { return id - N;}
   int idOfCellBelow(int id) { return id + N;}
-  int idOfCellLeft(int id) { return id-1;}
-  int idOfCellRight(int id) { return id+1;}
+  int idOfCellLeft(int id) { return id - 1;}
+  int idOfCellRight(int id) { return id + 1;}
 
 
   public Maze(int setKindCode, boolean graphicsDraw)
@@ -77,6 +91,7 @@ public class Maze {
     k = setKindCode;
     uf = new UF(N*N);
     wallCount = 0;
+    g =  new Graph(N * N);
 
     // our maze requires us to get from top left
     // to bottom right.
@@ -105,6 +120,8 @@ public class Maze {
       }
       StdDraw.setPenRadius(0.006); // don't want shadow of former line
     }
+
+
   }
 
   void generate()
@@ -134,7 +151,8 @@ public class Maze {
 
       case bloomFilterSet:
         // size of bitset for 1% false positive rate with N^2 insertions
-        filterSize = (int) Math.ceil(-2 * N * N / Math.log(0.9));
+        filterSize = (int) Math.ceil(-2 * 0.485 * N * N / -0.105361); // -2N^2 / ln(0.9)
+        //filterSize = 3289; // for debugging
         bitsyBloomRight =  new BitSet(filterSize);
         bitsyBloomBottom =  new BitSet(filterSize);
 
@@ -177,12 +195,38 @@ public class Maze {
           break;
       }
     }
+
+
+    if (k == 4)
+    {
+      BreadthFirstPaths bfp = new BreadthFirstPaths(g, topLeft);
+      System.out.println("has path?: " + (bfp.hasPathTo(bottomRight) ? "true" : "false" ));
+      Object crap = bfp.pathTo(bottomRight);
+      solvedPath = new ArrayList<Integer>();
+
+      ListIterator<Integer> iter = new Iterator();
+      iter = bfp.pathTo(bottomRight).Iterator();
+      // int[] solvedPath2 = new int[g.V()];
+
+
+
+      /*solvedPath = new ArrayList<Integer>();
+      for (int vertex : s)
+      {
+        solvedPath.add(s.pop());
+      }
+      */
+    }
+
   }
 
 
   void connectIfNotConnected(int id1, int id2, int direction) {
       if ( ! uf.connected(id1, id2))
       {
+          // adding edges to graph
+          g.addEdge(id1, id2);
+
           // knock out the wall and thereby merge components
           uf.union(id1,id2);
 
@@ -308,7 +352,7 @@ public class Maze {
 
       case bloomFilterSet:
         String wall = x + ";" + y;
-        if (!bitsyBloomRight.get(wall.hashCode()%filterSize) && bitsyBloomRight.get(hashinItUp(wall)))
+        if (!bitsyBloomRight.get(wall.hashCode()%filterSize) && !bitsyBloomRight.get(hashinItUp(wall)))
           isWall = false;
         else
           isWall = true;
@@ -339,7 +383,7 @@ public class Maze {
 
       case bloomFilterSet:
         String wall = x + ";" + y;
-        if (!bitsyBloomBottom.get(wall.hashCode()%filterSize) && bitsyBloomBottom.get(hashinItUp(wall)))
+        if (!bitsyBloomBottom.get(wall.hashCode()%filterSize) && !bitsyBloomBottom.get(hashinItUp(wall)))
           isWall = false;
         else
           isWall = true;
