@@ -40,8 +40,7 @@ public class Maze {
   Set<String> hashy;  // Case 3: HashSet
 
   int filterSize;           // Case 4: Bloom Filter
-  BitSet bitsyBloomRight;   // BitSets for Bloom filter
-  BitSet bitsyBloomBottom;
+  BloomFilter bitSet;
 
   // For Solving and Drawing:
   Graph g;
