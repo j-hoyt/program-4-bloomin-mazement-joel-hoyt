@@ -45,7 +45,7 @@ public class Prog4Test
   @Test
   //checking for false negatives, ie, it says it has a wall (the wall is NOT
   // in the set of removed walls), when it doesn't have a wall.
-  public void NoMeansNo()
+  public void NoMeansNoRight()
   {
     int n = (int) (0.49 * 40 * 40);
     int m = (int) Math.ceil(-2 * n / -0.105361);
@@ -72,6 +72,37 @@ public class Prog4Test
 
      //assertTrue(true);
      System.out.println("\n\nTest 2 - NoMeansNo.\n"+n+" insertions\n"+falseNegatives+" false negatives\n\n");
+     assertTrue(falseNegatives == 0, falseNegatives + " false negatives found by bloom filter");
+  }
+
+  @Test
+  public void NoMeansNoBottom()
+  {
+    int n = (int) (0.49 * 40 * 40);
+    int m = (int) Math.ceil(-2 * n / -0.105361);
+    System.out.println("\n\n" + n + "\n\n" + m);
+    BloomFilter bitsyBloom = new BloomFilter(m);
+    HashSet<String> hashy = new HashSet<String>();
+    int falseNegatives = 0;
+
+     // n insertions
+     for (int i = 0; i < 0.49 * 40; i++)
+       for (int j = 0; j < 40; j++)
+          bitsyBloom.removeBottomWall(i, j);
+
+
+     // checking n different coordinates, none of which were added
+     for (int i = 0; i < 0.49 * 40; i++)
+     {
+       for (int j = 0; j < 40; j++)
+       {
+          if (bitsyBloom.hasBottom(i, j))
+            falseNegatives++;
+        }
+      }
+
+     //assertTrue(true);
+     System.out.println("\n\nTest 3 - NoMeansNo.\n"+n+" insertions\n"+falseNegatives+" false negatives\n\n");
      assertTrue(falseNegatives == 0, falseNegatives + " false negatives found by bloom filter");
   }
 }
