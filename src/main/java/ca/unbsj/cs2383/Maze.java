@@ -40,7 +40,7 @@ public class Maze {
   Set<String> hashy;  // Case 3: HashSet
 
   int filterSize;           // Case 4: Bloom Filter
-  BloomFilter bitSet;
+  BloomFilter bitsyBloom;
 
   // For Solving and Drawing:
   Graph g;
@@ -152,14 +152,8 @@ public class Maze {
 
       case bloomFilterSet:
         // size of bitset for 1% false positive rate with N^2 insertions
-        filterSize = (int) Math.ceil(-2 * 0.485 * N * N / -0.105361); // -2N^2 / ln(0.9)
-        //filterSize = 3289; // for debugging
-        bitsyBloomRight =  new BitSet(filterSize);
-        bitsyBloomBottom =  new BitSet(filterSize);
-
-        //set all values in BitSet to true, ie, all walls are there at the start
-        bitsyBloomRight.set(0,filterSize - 1, true);
-        bitsyBloomBottom.set(0,filterSize - 1, true);
+        filterSize = (int) Math.ceil(-2 * 0.49 * N * N / -0.105361); // -2N^2 / ln(0.9)
+        bitsyBloom = new BloomFilter(filterSize);
         break;
     }
 
@@ -297,9 +291,7 @@ public class Maze {
         break;
 
       case bloomFilterSet:
-        String wall = x + ";" + y;
-        bitsyBloomRight.set(wall.hashCode() % filterSize, false);
-        bitsyBloomRight.set(hashinItUp(wall), false);
+        bitsyBloom.removeRightWall(x, y);
         break;
     }
   }
@@ -313,7 +305,7 @@ public class Maze {
         break;
 
       case bitSetSet:
-        bitsy.set((y * N + x) + (N * N), false);
+        bitsy.set(y * N + x, false);
         break;
 
       case hashSetSet:
@@ -323,9 +315,7 @@ public class Maze {
         break;
 
       case bloomFilterSet:
-        String wall = x + ";" + y;
-        bitsyBloomBottom.set(wall.hashCode() % filterSize, false);
-        bitsyBloomBottom.set(hashinItUp(wall), false);
+        removeBottomWall(x,y);
         break;
     }
   }
@@ -348,12 +338,7 @@ public class Maze {
         break;
 
       case bloomFilterSet:
-        String wall = x + ";" + y;
-        if (!bitsyBloomRight.get(wall.hashCode() % filterSize) && !bitsyBloomRight.get(hashinItUp(wall)))
-          isWall = false;
-        else
-          isWall = true;
-
+        isWall = bitsyBloom.hasRight(x, y);
         break;
     }
     return isWall;
@@ -379,12 +364,7 @@ public class Maze {
         break;
 
       case bloomFilterSet:
-        String wall = x + ";" + y;
-        if (!bitsyBloomBottom.get(wall.hashCode() % filterSize) && !bitsyBloomBottom.get(hashinItUp(wall)))
-          isWall = false;
-        else
-          isWall = true;
-
+        isWall = bitsyBloom.hasBottom(x, y);
         break;
     }
     return isWall;
@@ -494,15 +474,4 @@ public class Maze {
       System.out.println("\n" + nextLine);
     }
   }
-
-  // hash function for strings
-  int hashinItUp(String s)
-  {
-    int hash = 0;
-    for (int i = 0; i < s.length(); i++)
-      hash = (29 * hash + s.charAt(i)) % filterSize;
-
-    return hash;
-  }
-
 }
