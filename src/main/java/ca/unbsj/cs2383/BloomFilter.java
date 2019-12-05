@@ -1,6 +1,7 @@
 package ca.unbsj.cs2383;
 
 import java.util.BitSet;
+import java.lang.Math;
 
 class BloomFilter
 {
@@ -64,7 +65,7 @@ class BloomFilter
       for (int i = 0; i < s.length(); i++)
       hash = (29 * hash + s.charAt(i));
 
-      return hash % m;
+      return Math.abs(hash) % m;
   }
 
 
