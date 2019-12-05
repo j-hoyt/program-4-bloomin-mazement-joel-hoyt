@@ -1,4 +1,4 @@
-/*package ca.unbsj.cs2383;
+package ca.unbsj.cs2383;
 
 import edu.princeton.cs.algs4.UF;
 import edu.princeton.cs.algs4.StdDraw;
@@ -17,7 +17,7 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.lang.StringBuilder;
 
-public class MazeCopy {
+public class Maze {
   static final int LEFT=0, RIGHT=1, UP=2, DOWN=3;
 
   static final int CELLSIZE=20;
@@ -36,17 +36,11 @@ public class MazeCopy {
 
 
   boolean[][] walls;  // Case 1: 2d Boolean array
-   // 2d array of walls, N x 2N
-   // bottom wall of cell[i][j] corresponds to walls[i][2j]
-   // right wall  of cell[i][j] corresponds to walls[i][2j+1]
-
-
   BitSet bitsy;       // Case 2: BitSet
   Set<String> hashy;  // Case 3: HashSet
 
   int filterSize;           // Case 4: Bloom Filter
-  BloomFilter bitsyBloom;
-
+  BloomFilter bitSet;
 
   // For Solving and Drawing:
   Graph g;
@@ -61,6 +55,7 @@ public class MazeCopy {
 
   // parameter for what type of set to use
   int k;
+
 
   boolean drawOnGraphicsScreen;
 
@@ -77,16 +72,7 @@ public class MazeCopy {
       m.printAsciiGraphics(setKindCode);
       System.out.println(m.wallCount + "\n\n");
 
-      // comparing bloom filter path lengths vs true path lengths
-      Maze m2;
-      if (setKindCode == 4)
-      {
-         for (int i = 0; i < 100; i++)
-         {
-            m2 = new Maze(setKindCode, false);
-            m2.generate();
-         }
-      }
+
    }
 
   // a bunch of methods to map between cell ids (0,1,...N^2-1) and x,y coords
@@ -166,9 +152,14 @@ public class MazeCopy {
 
       case bloomFilterSet:
         // size of bitset for 1% false positive rate with N^2 insertions
-        filterSize = (int) Math.ceil(-2 * 0.485 * N * N / -0.105361); // -2*0.485*N^2 / ln(0.9)
+        filterSize = (int) Math.ceil(-2 * 0.485 * N * N / -0.105361); // -2N^2 / ln(0.9)
         //filterSize = 3289; // for debugging
-        bitsyBloom = new BloomFilter(filterSize);
+        bitsyBloomRight =  new BitSet(filterSize);
+        bitsyBloomBottom =  new BitSet(filterSize);
+
+        //set all values in BitSet to true, ie, all walls are there at the start
+        bitsyBloomRight.set(0,filterSize - 1, true);
+        bitsyBloomBottom.set(0,filterSize - 1, true);
         break;
     }
 
@@ -209,27 +200,22 @@ public class MazeCopy {
     BreadthFirstPaths bfp = new BreadthFirstPaths(g, topLeft);
     //System.out.println("\u2022has path?: " + (bfp.hasPathTo(bottomRight) ? "true" : "false" ));
 
-    Stack<Integer> s = (Stack) bfp.pathTo(bottomRight);
-    // solvedPath will hold all vertieces in shortest path, so they can be checked
-    // easily when printing the graph
     solvedPath = new ArrayList<Integer>();
+
+    Stack<Integer> s = (Stack) bfp.pathTo(bottomRight);
+
     while (!s.isEmpty())
     {
       solvedPath.add(s.pop());
     }
 
-
-    // drawing circles on shortest path
-    if (drawOnGraphicsScreen)
+    for (int i : solvedPath)
     {
-      for (int i : solvedPath)
-      {
-        int xpath = idToX(i);
-        int ypath = idToY(i);
-        StdDraw.setPenColor(StdDraw.BLUE);
-        StdDraw.filledCircle((xpath + 0.5) / N, 1 - ((ypath + 0.5) / N), 0.007);
-      }
-   }
+      int xpath = idToX(i);
+      int ypath = idToY(i);
+      StdDraw.setPenColor(StdDraw.BLUE);
+      StdDraw.filledCircle((xpath + 0.5) / N, 1 - ((ypath + 0.5) / N), 0.007);
+    }
 }
 
   void connectIfNotConnected(int id1, int id2, int direction) {
@@ -311,8 +297,10 @@ public class MazeCopy {
         break;
 
       case bloomFilterSet:
-         bitsyBloom.removeRightWall(x, y);
-         break;
+        String wall = x + ";" + y;
+        bitsyBloomRight.set(wall.hashCode() % filterSize, false);
+        bitsyBloomRight.set(hashinItUp(wall), false);
+        break;
     }
   }
 
@@ -335,7 +323,9 @@ public class MazeCopy {
         break;
 
       case bloomFilterSet:
-        bitsyBloom.removeBottomWall(x, y);
+        String wall = x + ";" + y;
+        bitsyBloomBottom.set(wall.hashCode() % filterSize, false);
+        bitsyBloomBottom.set(hashinItUp(wall), false);
         break;
     }
   }
@@ -358,7 +348,12 @@ public class MazeCopy {
         break;
 
       case bloomFilterSet:
-        isWall = bitsyBloom.hasRight(x, y);
+        String wall = x + ";" + y;
+        if (!bitsyBloomRight.get(wall.hashCode() % filterSize) && !bitsyBloomRight.get(hashinItUp(wall)))
+          isWall = false;
+        else
+          isWall = true;
+
         break;
     }
     return isWall;
@@ -384,7 +379,12 @@ public class MazeCopy {
         break;
 
       case bloomFilterSet:
-        isWall = bitsyBloom.hasBottom(x, y);
+        String wall = x + ";" + y;
+        if (!bitsyBloomBottom.get(wall.hashCode() % filterSize) && !bitsyBloomBottom.get(hashinItUp(wall)))
+          isWall = false;
+        else
+          isWall = true;
+
         break;
     }
     return isWall;
@@ -494,5 +494,15 @@ public class MazeCopy {
       System.out.println("\n" + nextLine);
     }
   }
+
+  // hash function for strings
+  int hashinItUp(String s)
+  {
+    int hash = 0;
+    for (int i = 0; i < s.length(); i++)
+      hash = (29 * hash + s.charAt(i)) % filterSize;
+
+    return hash;
+  }
+
 }
-*/

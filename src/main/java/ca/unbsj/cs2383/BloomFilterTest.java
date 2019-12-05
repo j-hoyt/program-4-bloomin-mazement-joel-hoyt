@@ -1,4 +1,4 @@
-package ca.unbsj.cs2383;
+/*package ca.unbsj.cs2383;
 
 import org.junit.jupiter.api.*;
 import static  org.junit.jupiter.api.Assertions.*;
@@ -10,7 +10,7 @@ import java.util.Random;
 public class BloomFilterTest
 {
 
-  // Test to 
+  // Test to
   @Test
   public void ErrorRateTest()
   {
@@ -19,16 +19,16 @@ public class BloomFilterTest
       bitsyBloom = new BloomFilter(m);
       int falsePositives;
       int successfulruns = 0;
-               
+
       for (int j = 0; j < 10; j++)
-      {      
-         
-         // n insertions     
+      {
+
+         // n insertions
          for (int i = 0; i < n; i++)
          {
            bitsyBloom.removeRightWall(i, 6);
          }
-   
+
          falsePositives = 0;
          // checking n different coordinates, none of which were added
          for (int i = 0; i < n; i++)
@@ -50,14 +50,14 @@ public class BloomFilterTest
       int m = (int) Math.ceil(-2 * n / -0.105361);
       bitsyBloom = new BloomFilter(m);
       int falseNegatives = 0;
-               
-         // n insertions     
+
+         // n insertions
          for (int i = 0; i < n; i++)
          {
            bitsyBloom.removeRightWall(i, 6);
            hashy.add(i + ";" + 6);
          }
-   
+
          // checking n different coordinates, none of which were added
          for (int i = 0; i < n; i++)
          {
@@ -68,4 +68,4 @@ public class BloomFilterTest
 
       assertTrue(falseNegatives == 0, falseNegatives + " false negatives found by bloom filter");
   }
-}
+}*/

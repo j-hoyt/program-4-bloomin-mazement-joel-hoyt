@@ -1,9 +1,11 @@
+package ca.unbsj.cs2383;
+
 import java.util.BitSet;
 
 class BloomFilter
 {
    int m;
-   BitSet bitsyBloomright;
+   BitSet bitsyBloomRight;
    BitSet bitsyBloomBottom;
 
    public BloomFilter(int size)
@@ -35,22 +37,24 @@ class BloomFilter
    public boolean hasRight(int x, int y)
    {
       String wall = x + ";" + y;
-
+      boolean isWall;
       if (!bitsyBloomRight.get(wall.hashCode() % m) && !bitsyBloomRight.get(hashinItUp(wall)))
           isWall = false;
       else
           isWall = true;
+      return isWall;
    }
 
 
    public boolean hasBottom(int x, int y)
    {
       String wall = x + ";" + y;
-
+      boolean isWall;
       if (!bitsyBloomBottom.get(wall.hashCode() % m) && !bitsyBloomBottom.get(hashinItUp(wall)))
           isWall = false;
       else
           isWall = true;
+      return isWall;
    }
 
    // hash function for strings
