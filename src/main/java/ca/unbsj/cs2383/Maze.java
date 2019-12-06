@@ -5,19 +5,16 @@ import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.Graph;
 import edu.princeton.cs.algs4.BreadthFirstPaths;
 import edu.princeton.cs.algs4.Stack;
-import edu.princeton.cs.algs4.Bag;
 
-
-import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.lang.StringBuilder;
 
-public class Maze {
+public class Maze
+{
   static final int LEFT=0, RIGHT=1, UP=2, DOWN=3;
 
   static final int CELLSIZE=20;
@@ -35,11 +32,20 @@ public class Maze {
   int wallCount;      // count of how many walls are removed
 
 
-  boolean[][] walls;  // Case 1: 2d Boolean array
-  BitSet bitsy;       // Case 2: BitSet
-  Set<String> hashy;  // Case 3: HashSet
+  // Case 1: 2d Boolean array
+  // 2d array of walls, N x 2N
+  // bottom wall of cell[i][j] corresponds to walls[i][2j]
+  // right wall  of cell[i][j] corresponds to walls[i][2j+1]
+  boolean[][] walls;
 
-  int filterSize;           // Case 4: Bloom Filter
+  // Case 2: BitSet
+  BitSet bitsy;
+
+  // Case 3: HashSet
+  Set<String> hashy;
+
+  // Case 4: Bloom Filter
+  int filterSize;
   BloomFilter bitsyBloom;
 
   // For Solving and Drawing:
@@ -49,11 +55,9 @@ public class Maze {
 
 
 
-  // 2d array of walls, N x 2N
-  // bottom wall of cell[i][j] corresponds to walls[i][2j]
-  // right wall  of cell[i][j] corresponds to walls[i][2j+1]
 
-  // parameter for what type of set to use
+
+  // same as setKindKode
   int k;
 
 
@@ -66,7 +70,6 @@ public class Maze {
           throw new RuntimeException("illegal setKind Code on cmd line");
 
       Maze m = new Maze(setKindCode, true); // will draw on grahics
-
 
       m.generate();
       m.printAsciiGraphics(setKindCode);
@@ -125,6 +128,8 @@ public class Maze {
 
   }
 
+  //First, generate initializes the right data structure, according to the setKindCode parameter
+
   void generate()
   {
     switch (k)
@@ -142,6 +147,10 @@ public class Maze {
         break;
 
       case bitSetSet:
+        // set all bits to true to indicate the presence of all walls
+        // set them false when removed
+        // right wall of cell(x,y)  : at the (y*N + x)th index
+        // bottom wall of cell(x,y) : at the (y*N + x + (N*N))th index
         bitsy = new BitSet(2 * N * N);
         bitsy.set(0, 2 * N * N - 1, true);
         break;
@@ -152,7 +161,9 @@ public class Maze {
 
       case bloomFilterSet:
         // size of bitset for 1% false positive rate with N^2 insertions
-        filterSize = (int) Math.ceil(-2 * 0.49 * N * N / -0.105361); // -2N^2 / ln(0.9)
+        // expected number of insertions (walls removed) = 0.485 * N^2
+        // Bloom filter holds two bitsets, for right and bottom walls.
+        filterSize = (int) Math.ceil(-2 * 0.485 * N * N / -0.105361); // -2N^2 / ln(0.9)
         bitsyBloom = new BloomFilter(filterSize);
         break;
     }
@@ -191,27 +202,36 @@ public class Maze {
       }
     }
 
+    // find paths from topLeft to all other cells
+    // graph G constructed in connectIfNotConnected() method below
     BreadthFirstPaths bfp = new BreadthFirstPaths(g, topLeft);
-    //System.out.println("\u2022has path?: " + (bfp.hasPathTo(bottomRight) ? "true" : "false" ));
 
-    solvedPath = new ArrayList<Integer>();
-
+    // Stack of cells on shortest path from topleft to bottom right
     Stack<Integer> s = (Stack) bfp.pathTo(bottomRight);
+
+    // pop the whole stack into an arrayList so later we can easily check if
+    // each cell is on the shortest path
+    solvedPath = new ArrayList<Integer>();
 
     while (!s.isEmpty())
     {
       solvedPath.add(s.pop());
     }
 
-    for (int i : solvedPath)
+    // draw pretty blue dots on every cell on the shortest path
+    if (drawOnGraphicsScreen)
     {
-      int xpath = idToX(i);
-      int ypath = idToY(i);
-      StdDraw.setPenColor(StdDraw.BLUE);
-      StdDraw.filledCircle((xpath + 0.5) / N, 1 - ((ypath + 0.5) / N), 0.007);
-    }
+      for (int i : solvedPath)
+      {
+        int xpath = idToX(i);
+        int ypath = idToY(i);
+        StdDraw.setPenColor(StdDraw.BLUE);
+        StdDraw.filledCircle((xpath + 0.5) / N, 1 - ((ypath + 0.5) / N), 0.007);
+      }
+   }
 }
 
+   // modified to take direction as another parameter
   void connectIfNotConnected(int id1, int id2, int direction) {
       if ( ! uf.connected(id1, id2))
       {
@@ -305,7 +325,7 @@ public class Maze {
         break;
 
       case bitSetSet:
-        bitsy.set(y * N + x, false);
+        bitsy.set(y * N + x + (N * N), false);
         break;
 
       case hashSetSet:
@@ -322,7 +342,7 @@ public class Maze {
 
   boolean isRightWall(int x, int y)
   {
-    boolean isWall = true; // remove this later
+    boolean isWall;
     switch (k)
     {
       case twoDBooleanSet:
@@ -346,7 +366,7 @@ public class Maze {
 
   boolean isBottomWall(int x, int y)
   {
-    boolean isWall = true; // remove this later
+    boolean isWall;
     switch (k)
     {
       case twoDBooleanSet:
@@ -393,13 +413,28 @@ public class Maze {
 
 
 
+  /*
+  For printing: consider each cell in four parts:
+  - the two upper left chearacters are always blanks
+  - the top right character
+  - the bottom left two characters
+  - the bottom right character
+
+  The tops of each cell are printed directly to the output stream
+  At the same time, the bottoms of each cell are appended to a stringbuilder
+  At the end of every line, the stringbuilder is printed all at once
+
+  For each cell, if it lies on the shortes tpath (that is, if the solvedPath ArrayList
+  contains the cell id), then print bullet points ("\u2022") instead of blank spaces in the cell
+  */
+
   void printAsciiGraphics(int kind)
   {
+   //top border +----//---+
     System.out.print("+");
     for (int i = 0; i < (N * 3) - 1; i++)
       System.out.print("-");
     System.out.println("+");
-
 
 
     StringBuilder nextLine;
@@ -409,7 +444,7 @@ public class Maze {
       System.out.print("|");
       for (int x = 0; x < N; x++)
       {
-        //blank space for cell
+        //top left two characters, blank space for cell
         if (solvedPath.contains(xyToId(x, y)))
           System.out.print("\u2022\u2022");
         else
@@ -465,10 +500,10 @@ public class Maze {
 
         if (!isRightWall(x,y) && !isBottomWall(x,y))
         {
-        if (solvedPath.contains(xyToId(x, y)))
-          nextLine.append("\u2022");
-        else
-          nextLine.append(" ");
+         if (solvedPath.contains(xyToId(x, y)))
+            nextLine.append(" ");
+         else
+            nextLine.append(" ");
         }
       }
       System.out.println("\n" + nextLine);

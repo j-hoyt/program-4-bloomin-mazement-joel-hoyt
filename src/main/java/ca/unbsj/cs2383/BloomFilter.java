@@ -21,6 +21,7 @@ class BloomFilter
       bitsyBloomBottom.set(0, m - 1, true);
    }
 
+   // construct string from coordinates, hash it two ways, and set the bits to be false
    public void removeRightWall(int x, int y)
    {
       String wall = x + ";" + y;

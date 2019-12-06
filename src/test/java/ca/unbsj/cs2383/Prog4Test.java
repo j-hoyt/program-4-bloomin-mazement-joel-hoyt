@@ -10,21 +10,29 @@ import java.util.Random;
 
 public class Prog4Test
 {
+
+  // this makes a bloom filter the same size as required for the 40x40 maze
+  // and with the same number of expected insertions
+  // does ten test runs, and checks that at least 5 of them have false positive
+  // rates between 0.5% and 2%
   @Test
   public void ErrorRateTest()
   {
       int n = (int) (0.485 * 40 * 40);
-      int m = (int) Math.ceil(-2 * n / -0.105361);
-      BloomFilter bitsyBloom = new BloomFilter(m);
+      int m = (int) Math.ceil(-2 * n / -0.105361); //hardcoded value of ln(0.9)
+      BloomFilter bitsyBloom;
       int falsePositives = 0;
       int successfulRuns = 0;
+      Random r;
 
       for (int j = 0; j < 10; j++)
       {
+         bitsyBloom = new BloomFilter(m);
+
          // n insertions
          for (int i = 0; i < n; i++)
          {
-           bitsyBloom.removeRightWall(i, 6);
+           bitsyBloom.removeRightWall(r.nextInt(40), 6);
          }
 
          falsePositives = 0;
@@ -42,9 +50,14 @@ public class Prog4Test
       assertTrue(successfulRuns >= 5, successfulRuns + " runs with false positive rate between 0.5% and 2%\t" + (double) falsePositives/n);
   }
 
+
+
+  // checking for false negatives on the right of a cell
+  // the bloom filter contains the set of removed walls. So a negative answer
+  // indicates the wall is not removed, ie, it's still there. 
+  // So a false negative is when the wall is reported as still there (ie, NOT in
+  // the set) when it was actually added to the bloom filter. 
   @Test
-  //checking for false negatives, ie, it says it has a wall (the wall is NOT
-  // in the set of removed walls), when it doesn't have a wall.
   public void NoMeansNoRight()
   {
     int n = (int) (0.49 * 40 * 40);
@@ -70,11 +83,16 @@ public class Prog4Test
         }
       }
 
-     //assertTrue(true);
      System.out.println("\n\nTest 2 - NoMeansNo.\n"+n+" insertions\n"+falseNegatives+" false negatives\n\n");
      assertTrue(falseNegatives == 0, falseNegatives + " false negatives found by bloom filter");
   }
 
+
+  // checking for false negatives on the right of a cell
+  // the bloom filter contains the set of removed walls. So a negative answer
+  // indicates the wall is not removed, ie, it's still there. 
+  // So a false negative is when the wall is reported as still there (ie, NOT in
+  // the set) when it was actually added to the bloom filter. 
   @Test
   public void NoMeansNoBottom()
   {
@@ -98,10 +116,9 @@ public class Prog4Test
        {
           if (bitsyBloom.hasBottom(i, j))
             falseNegatives++;
-        }
-      }
+       }
+     }
 
-     //assertTrue(true);
      System.out.println("\n\nTest 3 - NoMeansNo.\n"+n+" insertions\n"+falseNegatives+" false negatives\n\n");
      assertTrue(falseNegatives == 0, falseNegatives + " false negatives found by bloom filter");
   }
