@@ -23,7 +23,7 @@ public class Prog4Test
       BloomFilter bitsyBloom;
       int falsePositives = 0;
       int successfulRuns = 0;
-      Random r;
+      Random r = new Random();
 
       for (int j = 0; j < 10; j++)
       {

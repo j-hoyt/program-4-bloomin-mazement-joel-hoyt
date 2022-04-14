@@ -1,3 +1,28 @@
+/*
+Generates square mazes of size N*N with a unique path from top left cell to
+bottom right. Begins with complete grid of N^2 cells, then randomly selects a wall for removal
+only if there is not already a path between the cells separated by that wall. Stops when a path
+exists from top left to bottom right.
+
+Cells are initially modelled as nodes on a 0-regular (i.e., entirely disjoint) graph.
+Walls are removed, joining adjacent cells, and the graphs they belong to are union'd.
+Thus, nodes being in the same sub-graph mean that a path exists between them.
+No walls are removed between cells whose nodes are already connected, ensuring a unique
+path exists.
+
+Information about what walls have been removed or not is held in one of four different data
+structures, chosen with runtime arg 1, 2, 3, or 4. 4 uses a Bloom filter, the only
+probabilistic structure, causing false positives when determining if a wall has been removed already
+
+JUnit tests check that the false positives with the Bloom filter are within an expected range
+
+Prints ASCII representation of maze with shortest path marked
+Displays animation of the generation of the grid, removal of walls, and the shortest path.
+
+*/
+
+
+
 package ca.unbsj.cs2383;
 
 import edu.princeton.cs.algs4.UF;
@@ -13,17 +38,21 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.lang.StringBuilder;
 
+
+
 public class Maze
 {
   static final int LEFT=0, RIGHT=1, UP=2, DOWN=3;
 
   static final int CELLSIZE=20;
+
+  // four different methods for generating the maze. runtime arguments: 1, 2, 3, or 4
   static final int twoDBooleanSet=1;
   static final int bitSetSet=2;
   static final int hashSetSet=3;
   static final int bloomFilterSet=4;
 
-  static final int N = 40; // grid is NxN
+  static final int N = 40; // maze size is NxN
   static final double GRAPHICSSCALE = 1.0/N;
 
   int topLeft, bottomRight; // node IDs
@@ -71,14 +100,14 @@ public class Maze
 
       Maze m = new Maze(setKindCode, true); // will draw on grahics
 
-      m.generate();
+      m.generate(setKindCode);
       m.printAsciiGraphics(setKindCode);
       System.out.println(m.wallCount + "\n\n");
 
 
    }
 
-  // a bunch of methods to map between cell ids (0,1,...N^2-1) and x,y coords
+  // Methods to map between cell ids (0,1,...N^2-1) and x,y coords
   int xyToId(int x, int y) { return y*N + x; }
 
   int idToX(int id) { return id % N;}
@@ -113,25 +142,26 @@ public class Maze
       StdDraw.clear();
 
       // initial grid
-      // StdDraw puts the origin at the BOTTOM left, so
-      // things are basically "upside down" when visualized
-      // with it.....unless we do these crazy (1-y) transform to
-      // fix this.
+      // StdDraw puts the origin at the BOTTOM left so (1-y) transformations
+      // map it to a Top Left Origin system
 
       for (int i=0; i <= N; ++i) {
           StdDraw.line(0, 1- i/(double)N, 1, 1-i/(double) N);
           StdDraw.line(i/(double)N, 0, i/(double)N,  1);
       }
-      StdDraw.setPenRadius(0.006); // don't want shadow of former line
+      StdDraw.setPenRadius(0.006);
     }
 
 
   }
 
-  //First, generate initializes the right data structure, according to the setKindCode parameter
+  // () generate initializes the right data structure, according to the setKindCode parameter
 
-  void generate()
+  void generate(int k)
   {
+
+    // use one of the four structures to contain info about what walls are removed
+    // initially, all possible walls exist
     switch (k)
     {
       case twoDBooleanSet:
@@ -168,6 +198,10 @@ public class Maze
         break;
     }
 
+    // Remove walls until a path exists from top left to bottom right
+    // Choose random cell, choose random neighbour, check if connected,
+    // remove wall if not connected, then union each cell's graph
+    // stops when topleft and bottomright are in the same graph
     while (!uf.connected(topLeft, bottomRight))
     {
       // choose a random cell
@@ -182,6 +216,8 @@ public class Maze
       // its chosen neighbour if they are not yet in the
       // same component
 
+      // Each IF ensures that a neighbour even exists, for those cells that are on the edge of the maze
+      // then connected them if not connected
       switch(randDir) {
       case LEFT:
           if (randX != 0)
@@ -342,7 +378,7 @@ public class Maze
 
   boolean isRightWall(int x, int y)
   {
-    boolean isWall;
+    boolean isWall = false;
     switch (k)
     {
       case twoDBooleanSet:
@@ -366,7 +402,7 @@ public class Maze
 
   boolean isBottomWall(int x, int y)
   {
-    boolean isWall;
+    boolean isWall = false;
     switch (k)
     {
       case twoDBooleanSet:
@@ -414,17 +450,19 @@ public class Maze
 
 
   /*
-  For printing: consider each cell in four parts:
-  - the two upper left chearacters are always blanks
-  - the top right character
-  - the bottom left two characters
-  - the bottom right character
+  For printing: consider each cell as six ASCII characters, 3 wide, 2 tall
+  representing interior of cell, right wall, and bottom wall.
+  Leftmost and topmost walls of entire maze are added. Cells contain all other info for displaying.
+  - top left and top middle chars (interior of cell) are blank, unless a path is marked on them
+  - the top right character is a wall (|) blank (if connected to adjacent cell) or marked with path
+  - the bottom left two characters are either blank (if connected to cell below) or walls (--)
+  - the bottom right character is either wall (|), corner (+), blank, or marked with path
 
   The tops of each cell are printed directly to the output stream
   At the same time, the bottoms of each cell are appended to a stringbuilder
   At the end of every line, the stringbuilder is printed all at once
 
-  For each cell, if it lies on the shortes tpath (that is, if the solvedPath ArrayList
+  For each cell, if it lies on the shortest path (that is, if the solvedPath ArrayList
   contains the cell id), then print bullet points ("\u2022") instead of blank spaces in the cell
   */
 
