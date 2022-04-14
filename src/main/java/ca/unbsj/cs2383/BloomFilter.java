@@ -5,9 +5,9 @@ import java.lang.Math;
 
 class BloomFilter
 {
-   int m;
-   BitSet bitsyBloomRight;
-   BitSet bitsyBloomBottom;
+   final int m;
+   final BitSet bitsyBloomRight;
+   final BitSet bitsyBloomBottom;
 
    public BloomFilter(int size)
    {
@@ -40,10 +40,9 @@ class BloomFilter
    {
       String wall = x + ";" + y;
       boolean isWall;
-      if (!bitsyBloomRight.get(wall.hashCode() % m) && !bitsyBloomRight.get(hashinItUp(wall)))
-          isWall = false;
-      else
-          isWall = true;
+      if (bitsyBloomRight.get(wall.hashCode() % m)) {
+         isWall = true;
+      } else isWall = bitsyBloomRight.get(hashinItUp(wall));
       return isWall;
    }
 
@@ -52,10 +51,9 @@ class BloomFilter
    {
       String wall = x + ";" + y;
       boolean isWall;
-      if (!bitsyBloomBottom.get(wall.hashCode() % m) && !bitsyBloomBottom.get(hashinItUp(wall)))
-          isWall = false;
-      else
-          isWall = true;
+      if (bitsyBloomBottom.get(wall.hashCode() % m)) {
+         isWall = true;
+      } else isWall = bitsyBloomBottom.get(hashinItUp(wall));
       return isWall;
    }
 

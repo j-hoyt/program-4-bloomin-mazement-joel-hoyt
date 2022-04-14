@@ -2,9 +2,9 @@ package ca.unbsj.cs2383;
 
 import org.junit.jupiter.api.*;
 import static  org.junit.jupiter.api.Assertions.*;
-import static java.time.Duration.ofMillis;
+// import static java.time.Duration.ofMillis;
 
-import java.util.HashSet;
+//import java.util.HashSet;
 import java.util.Random;
 
 
@@ -64,7 +64,7 @@ public class Prog4Test
     int m = (int) Math.ceil(-2 * n / -0.105361);
     System.out.println("\n\n" + n + "\n\n" + m);
     BloomFilter bitsyBloom = new BloomFilter(m);
-    HashSet<String> hashy = new HashSet<String>();
+    //HashSet<String> hashy = new HashSet();
     int falseNegatives = 0;
 
      // n insertions
@@ -84,7 +84,8 @@ public class Prog4Test
       }
 
      System.out.println("\n\nTest 2 - NoMeansNo.\n"+n+" insertions\n"+falseNegatives+" false negatives\n\n");
-     assertTrue(falseNegatives == 0, falseNegatives + " false negatives found by bloom filter");
+     //assertTrue(falseNegatives == 0, falseNegatives + " false negatives found by bloom filter");
+      assertEquals(0, falseNegatives);
   }
 
 
@@ -100,7 +101,7 @@ public class Prog4Test
     int m = (int) Math.ceil(-2 * n / -0.105361);
     System.out.println("\n\n" + n + "\n\n" + m);
     BloomFilter bitsyBloom = new BloomFilter(m);
-    HashSet<String> hashy = new HashSet<String>();
+    //HashSet<String> hashy = new HashSet<String>();
     int falseNegatives = 0;
 
      // n insertions
@@ -120,6 +121,7 @@ public class Prog4Test
      }
 
      System.out.println("\n\nTest 3 - NoMeansNo.\n"+n+" insertions\n"+falseNegatives+" false negatives\n\n");
-     assertTrue(falseNegatives == 0, falseNegatives + " false negatives found by bloom filter");
+     //assertTrue(falseNegatives == 0, falseNegatives + " false negatives found by bloom filter");
+     assertEquals(0, falseNegatives);
   }
 }

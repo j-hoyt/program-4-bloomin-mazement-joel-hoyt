@@ -16,7 +16,7 @@ probabilistic structure, causing false positives when determining if a wall has 
 
 JUnit tests check that the false positives with the Bloom filter are within an expected range
 
-Prints ASCII representation of maze with shortest path marked
+Prints ASCII representation of maze with the shortest path marked
 Displays animation of the generation of the grid, removal of walls, and the shortest path.
 
 */
@@ -55,14 +55,14 @@ public class Maze
   static final int N = 40; // maze size is NxN
   static final double GRAPHICSSCALE = 1.0/N;
 
-  int topLeft, bottomRight; // node IDs
-  Random r;
-  UF uf;              // union find structures
+  final int topLeft, bottomRight; // node IDs
+  final Random r;
+  final UF uf;              // union find structures
   int wallCount;      // count of how many walls are removed
 
 
   // Case 1: 2d Boolean array
-  // 2d array of walls, N x 2N
+  // 2d array of walls, N x 2 N
   // bottom wall of cell[i][j] corresponds to walls[i][2j]
   // right wall  of cell[i][j] corresponds to walls[i][2j+1]
   boolean[][] walls;
@@ -78,8 +78,8 @@ public class Maze
   BloomFilter bitsyBloom;
 
   // For Solving and Drawing:
-  Graph g;
-  BreadthFirstPaths bfp;
+  final Graph g;
+  //BreadthFirstPaths bfp;
   ArrayList<Integer> solvedPath; // ArrayList of cell IDs that are on the correct path
 
 
@@ -87,10 +87,10 @@ public class Maze
 
 
   // same as setKindKode
-  int k;
+  final int k;
 
 
-  boolean drawOnGraphicsScreen;
+  final boolean drawOnGraphicsScreen;
 
   public static void main(String [] args)
   {
@@ -101,13 +101,13 @@ public class Maze
       Maze m = new Maze(setKindCode, true); // will draw on grahics
 
       m.generate(setKindCode);
-      m.printAsciiGraphics(setKindCode);
+      m.printAsciiGraphics();
       System.out.println(m.wallCount + "\n\n");
 
 
    }
 
-  // Methods to map between cell ids (0,1,...N^2-1) and x,y coords
+  // Methods to map between cell ids (0,1,...N^2-1) and x,y coordinates
   int xyToId(int x, int y) { return y*N + x; }
 
   int idToX(int id) { return id % N;}
@@ -186,7 +186,7 @@ public class Maze
         break;
 
       case hashSetSet:
-        hashy =  new HashSet<String>(2 * N * N);
+        hashy =  new HashSet<>(2 * N * N);
         break;
 
       case bloomFilterSet:
@@ -201,8 +201,10 @@ public class Maze
     // Remove walls until a path exists from top left to bottom right
     // Choose random cell, choose random neighbour, check if connected,
     // remove wall if not connected, then union each cell's graph
-    // stops when topleft and bottomright are in the same graph
-    while (!uf.connected(topLeft, bottomRight))
+    // stops when top left and bottom right are in the same graph
+
+    //while (!uf.connected(topLeft, bottomRight)) DEPRECATED
+    while (!(uf.find(topLeft) == uf.find(bottomRight)))
     {
       // choose a random cell
       int randX = r.nextInt(N);
@@ -242,12 +244,12 @@ public class Maze
     // graph G constructed in connectIfNotConnected() method below
     BreadthFirstPaths bfp = new BreadthFirstPaths(g, topLeft);
 
-    // Stack of cells on shortest path from topleft to bottom right
-    Stack<Integer> s = (Stack) bfp.pathTo(bottomRight);
+    // Stack of cell ids on shortest path from top left to bottom right
+    Stack<Integer> s = (Stack<Integer>) bfp.pathTo(bottomRight);
 
-    // pop the whole stack into an arrayList so later we can easily check if
+    // pop the whole stack into an arrayList, so later we can easily check if
     // each cell is on the shortest path
-    solvedPath = new ArrayList<Integer>();
+    solvedPath = new ArrayList<>();
 
     while (!s.isEmpty())
     {
@@ -267,9 +269,13 @@ public class Maze
    }
 }
 
-   // modified to take direction as another parameter
+  // joins the two cell ids in the same graph to represent that a path exists between them
   void connectIfNotConnected(int id1, int id2, int direction) {
-      if ( ! uf.connected(id1, id2))
+
+      //if ( ! uf.connected(id1, id2))  DEPRECATED
+
+      //if cells id1 and id2 are not already connected
+      if (!(uf.find(id1) == uf.find(id2)))
       {
           // adding edges to graph
           g.addEdge(id1, id2);
@@ -277,8 +283,10 @@ public class Maze
           // knock out the wall and thereby merge components
           uf.union(id1,id2);
 
-          int x1 = idToX(id1); int y1 = idToY(id1);
-          int x2 = idToX(id2); int y2 = idToY(id2);
+          int x1 = idToX(id1);
+          int y1 = idToY(id1);
+          int x2 = idToX(id2);
+          int y2 = idToY(id2);
 
           if (direction == LEFT) {
             // go to the left cell and knock down the right wall
@@ -302,10 +310,10 @@ public class Maze
 
           wallCount++;
 
-
+          // draw white lines over removed walls
           if (drawOnGraphicsScreen)
           {
-            // erase the wall
+            // "erase" the wall
             StdDraw.setPenColor(StdDraw.WHITE);
             if (x1 == x2)
             {
@@ -316,18 +324,13 @@ public class Maze
             }
             else
             {
-              // need a vertical line set
+              // horizontal adjacency needs a vertical line set
               int greaterX=Math.max(x1,x2);
               StdDraw.line(greaterX*GRAPHICSSCALE, 1-(y1*GRAPHICSSCALE+0.002),
                            greaterX*GRAPHICSSCALE, 1-((y1+1)*GRAPHICSSCALE-0.002));
             }
           }
         }
-      else {
-          // nothing.  Even if there is a wall here, it does
-          // nothing except make the maze harder.  So leave
-          // the wall.
-      }
   }
 
   void removeRightWall(int x, int y)
@@ -426,28 +429,6 @@ public class Maze
     return isWall;
   }
 
-  // for debugging,
-  // show members of the connected component of (0,0)
-  // with blanks, * for non-members
-  // Note: this is not a visualization of the maze
-
-
-
-  void print(int howMuch)
-  {
-    if (howMuch > N) howMuch = N;
-    for (int y=0; y < howMuch; ++y)
-    {
-        for (int x=0; x < howMuch; ++x)
-            if (uf.connected(xyToId(x,y), topLeft))
-                System.out.print(" ");
-            else
-                System.out.print("*");
-        System.out.println();
-    }
-  }
-
-
 
   /*
   For printing: consider each cell as six ASCII characters, 3 wide, 2 tall
@@ -459,14 +440,14 @@ public class Maze
   - the bottom right character is either wall (|), corner (+), blank, or marked with path
 
   The tops of each cell are printed directly to the output stream
-  At the same time, the bottoms of each cell are appended to a stringbuilder
-  At the end of every line, the stringbuilder is printed all at once
+  At the same time, the bottoms of each cell are appended to a StringBuilder
+  At the end of every line, the StringBuilder is printed all at once
 
   For each cell, if it lies on the shortest path (that is, if the solvedPath ArrayList
   contains the cell id), then print bullet points ("\u2022") instead of blank spaces in the cell
   */
 
-  void printAsciiGraphics(int kind)
+  void printAsciiGraphics()
   {
    //top border +----//---+
     System.out.print("+");
