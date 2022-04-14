@@ -1,8 +1,42 @@
+A maze generation program done in Java for a Data Structures and Algorithms class. 
+Makes use of: 
+  * ArrayLists, Sets, BitSets, HashSets, Bloom filters, Stacks, Graphs, Disjoint-Set (Union-Find/Merge-Find)
+  * Maven, JUnit testing, edu.cs.princeton.algs4 library for graph implementation and graphics tools
 
+### Overview
+Generates square mazes of size NxN with a unique path from top left cell to
+bottom right. 
+
+### Approach
+Begins with complete grid of N^2 cells, then randomly selects a wall for removal
+only if there is not already a path between the cells separated by that wall. Stops when a path
+exists from top left to bottom right.
+
+Cells are initially modelled as nodes on a 0-regular (i.e., entirely disjoint) graph .
+Walls are removed, joining adjacent cells, and the graphs they belong to are union'd.
+Thus, nodes being in the same sub-graph mean that a path exists between them.
+No walls are removed between cells whose nodes are already connected, ensuring a unique
+path exists.
+
+Information about what walls have been removed or not is held in one of four different data
+structures, chosen with runtime arg 1, 2, 3, or 4. 4 uses a Bloom filter, the only
+probabilistic structure, causing false positives when determining if a wall has been removed already
+
+A breath-first search on the graph structure determines the shortest path.
+
+JUnit tests check that the false positives with the Bloom filter are within an expected range and that there are no false negatives.
+
+### Output
+
+Prints ASCII representation of maze with the shortest path marked
+Displays animation of the generation of the grid, removal of walls, and the shortest path.
 Graphical Representation:
+
+![maze_AdobeCreativeCloudExpress(1)](https://user-images.githubusercontent.com/43970162/163430481-6b5edd33-4562-4aec-8d4b-f7cb369c53b8.gif)
 
 
 Unicode Representation:
+```
 +-----------------------------------------------------------------------------------------------------------------------+
 |••|  |     |  |              |        |        |  |  |     |        |           |     |  |  |  |           |        |  |
 |••|  +--+  +--+---   -----+--+---     |   ---  |  |  |   --+   ---  |   --+   --+   --+  |  |  +------   --+------  |  |
@@ -84,6 +118,7 @@ Unicode Representation:
 +--+  +--+      --+--+      --+  |  |     +---  |  |  |     +--+--+   -----+     |      --+  +--+        |  |  +--+•• --+
 |           |  |        |     |     |  |        |     |  |  |  |              |  |  |     |  |     |  |     |     |•••••|
 +-----------+--+--------+-----+-----+--+--------+-----+--+--+--+--------------+--+--+-----+--+-----+--+-----+-----+-----+
-1581
+```
+
 
 
